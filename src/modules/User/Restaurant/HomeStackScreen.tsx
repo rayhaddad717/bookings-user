@@ -1,4 +1,13 @@
-import { View, Text, StyleSheet, RefreshControl, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  RefreshControl,
+  FlatList,
+  Pressable,
+} from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HomeStackParamList } from "../../../utils/RouteParamList/DashboardStackParamList";
@@ -8,7 +17,10 @@ import { getDocs, limit, query } from "firebase/firestore";
 import { companyRestaurantsRef, restaurantsRef } from "../../../collections";
 import { Restaurant, restaurantConverter } from "../../../interfaces";
 import RestaurantCard from "./components/HomeScreen/RestaurantCard";
-import { globalStyles, theme } from "../../../theme";
+import { MaterialIcons } from "@expo/vector-icons";
+import { COLORS, globalStyles, theme } from "../../../theme";
+import { Image } from "expo-image";
+import { ICONS, IMAGES } from "../../../icons";
 type Props = NativeStackScreenProps<HomeStackParamList, "HomeStack">;
 const HomeStackScreen = ({ navigation }: Props) => {
   const { restaurantStore, authenticationStore } = useStore();
@@ -48,28 +60,147 @@ const HomeStackScreen = ({ navigation }: Props) => {
     initRestaurants();
   }, [restaurantStore]);
   return (
-    <View style={styles.container}>
-      <Text style={globalStyles.headerText}>Near Me</Text>
-      <FlatList
-        data={restaurantStore.restaurants}
-        style={styles.restaurantScrollView}
-        keyExtractor={(item) => item.uid}
-        renderItem={({ item: restaurant }) => (
-          <RestaurantCard
-            goToRestaurantDetails={goToRestaurantDetails}
-            restaurant={restaurant}
-          />
-        )}
-        refreshControl={
-          <RefreshControl
-            colors={[theme.primaryColor]}
-            refreshing={refreshing}
-            onRefresh={initRestaurants}
-          />
-        }
+    <SafeAreaView style={globalStyles.container}>
+      <ScrollView
+        contentContainerStyle={[globalStyles.scrollContainer]}
         showsVerticalScrollIndicator={false}
-      ></FlatList>
-    </View>
+      >
+        <View style={{ flex: 1, gap: 20 }}>
+          <View>
+            <View
+              style={{
+                paddingVertical: 60,
+                backgroundColor: "#0d2149",
+                paddingHorizontal: "5%",
+                width: "120%",
+                marginLeft: "-5%",
+              }}
+            >
+              <Text style={styles.header}>Discover places</Text>
+              <Text style={styles.header}>and restaurants</Text>
+            </View>
+            <Pressable
+              onPress={() => navigation.navigate("Search")}
+              style={{
+                position: "relative",
+                height: 30,
+              }}
+            >
+              <View
+                style={{
+                  borderRadius: theme.borderRadius.soft,
+                  borderColor: "red",
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  zIndex: 10,
+                  height: 60,
+                  backgroundColor: COLORS.WHITE,
+                  width: "100%",
+                  marginHorizontal: "0%",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexDirection: "row",
+                  paddingHorizontal: 15,
+                  ...theme.shadow.soft,
+                }}
+              >
+                <Text style={[theme.text.subtitle]}>
+                  Type location or restaurant
+                </Text>
+                <Image
+                  source={ICONS.ICON_ARROW_RIGHT}
+                  style={{ width: 24, aspectRatio: 1 }}
+                />
+              </View>
+            </Pressable>
+          </View>
+          <Text style={[theme.text.header]}>Near You</Text>
+          <FlatList
+            horizontal={true}
+            data={restaurantStore.restaurants.concat(
+              restaurantStore.restaurants,
+              restaurantStore.restaurants,
+              restaurantStore.restaurants
+            )}
+            style={{ minWidth: "120%", marginRight: "-5%" }}
+            contentContainerStyle={styles.restaurantScrollView}
+            keyExtractor={(item) => item.uid}
+            renderItem={({ item: restaurant }) => (
+              <RestaurantCard
+                goToRestaurantDetails={goToRestaurantDetails}
+                restaurant={restaurant}
+              />
+            )}
+            ItemSeparatorComponent={({}) => <View style={{ width: 15 }}></View>}
+            // refreshControl={
+            //   <RefreshControl
+            //     colors={[theme.primaryColor]}
+            //     refreshing={refreshing}
+            //     onRefresh={initRestaurants}
+            //   />
+            // }
+            showsHorizontalScrollIndicator={false}
+          ></FlatList>
+
+          <Text style={[theme.text.header]}>Categories</Text>
+          <View style={styles.categoriesContainer}>
+            <Pressable>
+              <View style={styles.categoryCard}>
+                <View style={styles.categoryImageContainer}>
+                  <Image
+                    source={ICONS.ICON_PIZZA_SLICE}
+                    style={styles.categoryImage}
+                  />
+                </View>
+                <Text style={[globalStyles.baseText, styles.categoryTitle]}>
+                  Pizza
+                </Text>
+              </View>
+            </Pressable>
+            <Pressable>
+              <View style={styles.categoryCard}>
+                <View style={styles.categoryImageContainer}>
+                  <Image
+                    source={ICONS.ICON_HAMBURGER}
+                    style={styles.categoryImage}
+                  />
+                </View>
+                <Text style={[globalStyles.baseText, styles.categoryTitle]}>
+                  Burger
+                </Text>
+              </View>
+            </Pressable>
+            <Pressable>
+              <View style={styles.categoryCard}>
+                <View style={styles.categoryImageContainer}>
+                  <Image
+                    source={ICONS.ICON_LEAF}
+                    style={styles.categoryImage}
+                  />
+                </View>
+                <Text style={[globalStyles.baseText, styles.categoryTitle]}>
+                  Vegan
+                </Text>
+              </View>
+            </Pressable>
+            <Pressable>
+              <View style={styles.categoryCard}>
+                <View style={styles.categoryImageContainer}>
+                  <Image
+                    source={ICONS.ICON_KEBAB}
+                    style={styles.categoryImage}
+                  />
+                </View>
+                <Text style={[globalStyles.baseText, styles.categoryTitle]}>
+                  Lebanese
+                </Text>
+              </View>
+            </Pressable>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -84,10 +215,15 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingTop: 25,
   },
+  header: {
+    color: "white",
+    fontSize: 32,
+    fontWeight: "700",
+    fontFamily: "Roboto_700Bold",
+  },
   restaurantScrollView: {
-    width: "100%",
     paddingTop: 10,
-    paddingHorizontal: 10,
+    paddingRight: "15%",
   },
   restaurantCard: {
     gap: 10,
@@ -120,4 +256,23 @@ const styles = StyleSheet.create({
     gap: 7,
     flexGrow: 1,
   },
+  categoriesContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  categoryCard: {
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 10,
+  },
+  categoryImageContainer: {
+    ...theme.shadow.soft,
+    backgroundColor: COLORS.WHITE,
+    padding: 20,
+    borderRadius: theme.borderRadius.soft,
+    alignItems: "center",
+  },
+  categoryImage: { aspectRatio: 1, width: 32 },
+  categoryTitle: { fontSize: 16 },
 });

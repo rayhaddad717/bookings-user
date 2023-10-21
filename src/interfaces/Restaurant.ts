@@ -29,6 +29,32 @@ export interface OperatingDays {
   saturday: boolean;
   sunday: boolean;
 }
+
+export type Cuisines =
+  | "Lebanese"
+  | "Italian"
+  | "Fast Food"
+  | "Chinese"
+  | "Fine Dining"
+  | "Indian"
+  | "Mediterranean"
+  | "Vegetarian"
+  | "Seafood"
+  | "Sushi"
+  | "Steakhouse"
+  | "Other";
+
+export type SafetyPrecaution =
+  | "Surfaces sanitized after every meal."
+  | "Common areas deep-cleaned daily.";
+export type Parking = "Valet" | "Hotel Valet Parking";
+export type DressCode = "Smart Casual" | "Formal";
+
+export type OperatingDay = {
+  startTime?: Date;
+  endTime?: Date;
+  isOpen?: boolean;
+};
 export type DaysOfTheWeek =
   | "monday"
   | "tuesday"
@@ -51,18 +77,30 @@ export type RestaurantFields =
 export interface Location {
   latitude: number;
   longitude: number;
-};
+}
 export interface GeocodingLocation {
   plus_code: { compound_code: string; global_code: string };
   results: {
     address_components: {
       long_name: string;
       short_name: string;
-      types: ("political" | "locality" | "street_address" | "route" | "administrative_area_level_1")[];
+      types: (
+        | "political"
+        | "locality"
+        | "street_address"
+        | "route"
+        | "administrative_area_level_1"
+      )[];
     }[];
     formatted_address: string;
     place_id: string;
-    types: ("political" | "locality" | "street_address" | "route" | "administrative_area_level_1")[];
+    types: (
+      | "political"
+      | "locality"
+      | "street_address"
+      | "route"
+      | "administrative_area_level_1"
+    )[];
   }[];
   status:
     | "OK"
@@ -89,10 +127,22 @@ export class Restaurant {
     sunday: false,
   };
   operatingHours?: OperatingHour[] = [];
+  daysOfTheWeekOperatingHours?: DaysOfTheWeekKeyType = {};
   images?: Image[] = [];
+  mainImage?: Image;
+  menuImages: Image[] = [];
+  menuURL: string = "";
   uid: string = "";
   tables?: Table[] = [];
-  location?:Location = {latitude:0,longitude:0};
+  location?: Location = { latitude: 0, longitude: 0 };
+
+  userUID: string = "";
+  pricingRange: number[] = []; //min and max
+  cuisine?: Cuisines;
+  safetyPrecaution?: SafetyPrecaution;
+  parking?: Parking;
+  dressCode?: DressCode;
+  executiveChef?: string;
   constructor(data: Partial<Restaurant>) {
     Object.assign(this, data);
   }
@@ -116,20 +166,30 @@ export const restaurantConverter = {
         twitterHandle: "",
       },
       website: restaurant.website || "",
-      operatingDays: restaurant.operatingDays || {
-        monday: false,
-        tuesday: false,
-        wednesday: false,
-        thursday: false,
-        friday: false,
-        saturday: false,
-        sunday: false,
+      daysOfTheWeekOperatingHours: restaurant.daysOfTheWeekOperatingHours || {
+        monday: { isOpen: false, startTime: null, endTime: null },
+        tuesday: { isOpen: false, startTime: null, endTime: null },
+        wednesday: { isOpen: false, startTime: null, endTime: null },
+        thursday: { isOpen: false, startTime: null, endTime: null },
+        friday: { isOpen: false, startTime: null, endTime: null },
+        saturday: { isOpen: false, startTime: null, endTime: null },
+        sunday: { isOpen: false, startTime: null, endTime: null },
       },
       operatingHours: restaurant.operatingHours || [],
+      mainImage: restaurant.mainImage,
+      menuImages: restaurant.menuImages || [],
+      menuURL: restaurant.menuURL,
       images: restaurant.images || [],
       uid: restaurant.uid || "",
       tables: restaurant.tables || [],
-      location:restaurant.location || {latitude:0,longitude:0}
+      location: restaurant.location || { latitude: 0, longitude: 0 },
+      userUID: restaurant.userUID,
+      // pricingRange: restaurant.pricingRange,
+      // cuisine: restaurant.cuisine,
+      // safetyPrecaution: restaurant.safetyPrecaution,
+      // parking: restaurant.parking,
+      // dressCode: restaurant.dressCode,
+      // executiveChef: restaurant.executiveChef,
     };
   },
   fromFirestore: (snapshot: DocumentSnapshot, options: SnapshotOptions) => {
@@ -144,4 +204,7 @@ export const restaurantConverter = {
     }
     return null;
   },
+};
+type DaysOfTheWeekKeyType = {
+  [key in DaysOfTheWeek]?: OperatingDay;
 };

@@ -143,7 +143,13 @@ const Register = ({ navigation }: Props) => {
   return (
     <SafeAreaView style={[globalStyles.container, styles.container]}>
       <ScrollView contentContainerStyle={[globalStyles.scrollContainer]}>
-        <View style={{ flex: 1, justifyContent: "space-between" }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "space-between",
+            paddingBottom: 10,
+          }}
+        >
           <Image source={IMAGES.SIGN_UP} style={styles.image} />
           <View style={{ height: 20 }}></View>
           <Text style={[theme.text.header, styles.header]}>Sign up</Text>
@@ -367,8 +373,9 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   image: {
-    width: "100%",
+    width: "120%",
     height: "auto",
     aspectRatio: 375 / 200,
+    marginLeft: "-5%",
   },
 });

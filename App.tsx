@@ -118,7 +118,7 @@ const App = observer(function App() {
           </Stack.Navigator>
         ) : (
           <View>
-            <Text>Loading2</Text>
+            <Text>Loading</Text>
           </View>
         )}
         <Toast />

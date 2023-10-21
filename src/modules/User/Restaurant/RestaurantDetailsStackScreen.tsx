@@ -3,14 +3,25 @@ import {
   Text,
   StyleSheet,
   Image,
-  TouchableOpacity,
+  SafeAreaView,
   ScrollView,
   Animated,
 } from "react-native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { HomeStackParamList } from "../../../utils/RouteParamList/DashboardStackParamList";
-import { Restaurant, RestaurantFields } from "../../../interfaces";
+import {
+  DaysOfTheWeek,
+  OperatingDay,
+  Restaurant,
+  RestaurantFields,
+} from "../../../interfaces";
 import { useStore } from "../../../stores";
 import { Ionicons } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -22,7 +33,7 @@ import { deleteDoc, doc } from "firebase/firestore";
 import Toast from "react-native-toast-message";
 import MyIconButton from "../../../components/MyIconButton";
 import MapComponent from "../../../components/MapComponent";
-import { theme } from "../../../theme";
+import { globalStyles, theme } from "../../../theme";
 type Props = NativeStackScreenProps<HomeStackParamList, "RestaurantDetails">;
 const RestaurantDetailsStackScreen = ({ navigation, route }: Props) => {
   const [restaurant, setRestaurant] = useState<Restaurant | null | undefined>(
@@ -136,114 +147,176 @@ const RestaurantDetailsStackScreen = ({ navigation, route }: Props) => {
       </View>
     </>
   ) : null;
+  const getOpeningHours = useMemo(() => {
+    try {
+      let result = "Closed Today";
+      console.log(restaurant?.daysOfTheWeekOperatingHours);
+      const today = new Intl.DateTimeFormat("en-US", { weekday: "long" })
+        .format(new Date())
+        .toLowerCase() as DaysOfTheWeek;
+      const todaysTimes = restaurant?.daysOfTheWeekOperatingHours?.[
+        "monday"
+      ] as any;
+      console.log(todaysTimes);
+      if (todaysTimes && todaysTimes.startTime && todaysTimes.endTime) {
+        result = `${new Date(
+          (todaysTimes.startTime as { seconds: number })["seconds"]!
+        )?.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })} - ${new Date(
+          (todaysTimes.endTime as { seconds: number })["seconds"]
+        )?.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}`;
+      }
+      return result;
+      console.log(result);
+    } catch (error) {
+      console.error(error);
+    }
+    return "Closed Today";
+  }, [restaurant]);
   if (!restaurant)
     return (
       <View style={styles.container}>
-        <Text>Loadintg</Text>
+        <Text>Loading</Text>
       </View>
     );
   return (
-    <View style={styles.container}>
-      <View
-        style={{
-          paddingTop: 40,
-          width: "100%",
-          position: "relative",
-        }}
-      >
-        <View
-          style={{
-            position: "absolute",
-            left: 20,
-            top: 60,
-            zIndex: 20,
-          }}
-        >
-          <MyIconButton
-            containerStyle={[
-              styles.absoluteActionButtons,
-              { borderRadius: 100, padding: 0 },
-            ]}
-            icon={
-              <Ionicons
-                name="arrow-back-circle-outline"
-                size={35}
-                color={theme.primaryColor}
-              />
-            }
-            onPress={() => navigation.goBack()}
-          ></MyIconButton>
-        </View>
-        <View
-          style={{
-            position: "absolute",
-            right: 20,
-            top: 60,
-            zIndex: 20,
-            flexDirection: "row",
-            gap: 10,
-          }}
-        >
-          <MyIconButton
-            containerStyle={styles.absoluteActionButtons}
-            icon={
-              <FontAwesome
-                name="bookmark"
-                size={25}
-                color={theme.primaryColor}
-              />
-            }
-            onPress={handleEditRestaurant}
-          ></MyIconButton>
-          <MyIconButton
-            containerStyle={styles.absoluteActionButtons}
-            icon={
-              <AntDesign name="delete" size={25} color={theme.primaryColor} />
-            }
-            onPress={handleConfirmDeleteRestaurant}
-          ></MyIconButton>
-        </View>
-        <Image
-          source={{
-            uri:
-              (restaurant.images?.length && restaurant?.images[0]?.url) ||
-              "https://api.bklebanon.com/content/uploads/offers/384~Website-Offers-King-Towfir-540x225.jpg",
-          }}
-          style={styles.restaurantMainImage}
-        />
-      </View>
+    <SafeAreaView style={globalStyles.container}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 10 }}
-        style={styles.body}
+        contentContainerStyle={globalStyles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        {Object.keys(restaurant).map((key) =>
-          typeof restaurant[key as RestaurantFields] === "string" ? (
-            <View key={key} style={styles.detailRow}>
-              <Text style={styles.title}>
-                {key.charAt(0).toUpperCase() + key.slice(1)}:
-              </Text>
-              <Text>{restaurant[key as RestaurantFields]?.toString()}</Text>
-            </View>
-          ) : null
-        )}
-        {RestaurantImages}
-        {restaurant.location?.latitude && restaurant.location?.longitude ? (
-          <View style={styles.locationContainer}>
-            <Text style={styles.header}>Location</Text>
-            {loading ? null : (
-              <MapComponent
-                disabled={true}
-                latitude={restaurant.location?.latitude || 33.91865710186577}
-                longitude={restaurant.location?.longitude || 35.621339343488216}
-                markerTitle={restaurant.name}
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "space-between",
+            paddingBottom: 10,
+          }}
+        >
+          <View>
+            <View
+              style={{
+                width: "120%",
+                position: "relative",
+                marginLeft: "-10%",
+              }}
+            >
+              <View
+                style={{
+                  position: "absolute",
+                  left: "10%",
+                  top: 20,
+                  zIndex: 20,
+                }}
+              >
+                <MyIconButton
+                  containerStyle={[
+                    styles.absoluteActionButtons,
+                    { borderRadius: 100, padding: 5 },
+                  ]}
+                  icon={
+                    <MaterialIcons
+                      name="chevron-left"
+                      size={22}
+                      color={theme.primaryColor}
+                    />
+                  }
+                  onPress={() => navigation.goBack()}
+                ></MyIconButton>
+              </View>
+              {/* <View
+              style={{
+                position: "absolute",
+                right: 20,
+                top: 60,
+                zIndex: 20,
+                flexDirection: "row",
+                gap: 10,
+              }}
+            >
+              <MyIconButton
+                containerStyle={styles.absoluteActionButtons}
+                icon={
+                  <FontAwesome
+                    name="bookmark"
+                    size={25}
+                    color={theme.primaryColor}
+                  />
+                }
+                onPress={handleEditRestaurant}
+              ></MyIconButton>
+              <MyIconButton
+                containerStyle={styles.absoluteActionButtons}
+                icon={
+                  <AntDesign
+                    name="delete"
+                    size={25}
+                    color={theme.primaryColor}
+                  />
+                }
+                onPress={handleConfirmDeleteRestaurant}
+              ></MyIconButton>
+            </View> */}
+              <Image
+                source={{
+                  uri:
+                    (restaurant.images?.length && restaurant?.images[0]?.url) ||
+                    "https://api.bklebanon.com/content/uploads/offers/384~Website-Offers-King-Towfir-540x225.jpg",
+                }}
+                style={styles.restaurantMainImage}
               />
-            )}
+            </View>
+            <View style={{ marginTop: 20 }}>
+              <Text style={[theme.text.header]}>{restaurant.name}</Text>
+              <Text style={theme.text.subtitle}>{restaurant.address}</Text>
+              <Text style={theme.text.subtitle}>{getOpeningHours}</Text>
+            </View>
           </View>
-        ) : null}
+
+          {true
+            ? null
+            : Object.keys(restaurant!).map((key) =>
+                typeof restaurant![key as RestaurantFields] === "string" ? (
+                  <View key={key} style={styles.detailRow}>
+                    <Text style={styles.title}>
+                      {key.charAt(0).toUpperCase() + key.slice(1)}:
+                    </Text>
+                    <Text>
+                      {restaurant![key as RestaurantFields]?.toString()}
+                    </Text>
+                  </View>
+                ) : null
+              )}
+          {RestaurantImages}
+          {restaurant.location?.latitude && restaurant.location?.longitude ? (
+            <View style={styles.locationContainer}>
+              <Text style={styles.header}>Location</Text>
+              {loading ? null : (
+                <MapComponent
+                  disabled={true}
+                  latitude={restaurant.location?.latitude || 33.91865710186577}
+                  longitude={
+                    restaurant.location?.longitude || 35.621339343488216
+                  }
+                  markerTitle={restaurant.name}
+                />
+              )}
+            </View>
+          ) : null}
+
+          <MyButton
+            type={"Primary"}
+            title={"Book a table"}
+            onPress={() => {}}
+          />
+        </View>
       </ScrollView>
       {DeleteActionSheet}
-    </View>
+    </SafeAreaView>
   );
 };
 

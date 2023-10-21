@@ -141,6 +141,7 @@ function Login({ navigation }: Props) {
             flex: 1,
             flexGrow: 1,
             justifyContent: "space-between",
+            paddingBottom: 10,
           }}
         >
           <Image source={IMAGES.LOGIN} style={styles.image} />
@@ -241,7 +242,7 @@ function Login({ navigation }: Props) {
                   >
                     <View style={styles.socialButton}>
                       <MyButton
-                        loading={isSubmitting}
+                        loading={false}
                         onPress={comingSoon}
                         title="Google"
                         type="Primary"
@@ -249,7 +250,7 @@ function Login({ navigation }: Props) {
                     </View>
                     <View style={styles.socialButton}>
                       <MyButton
-                        loading={isSubmitting}
+                        loading={false}
                         onPress={comingSoon}
                         title="Facebook"
                         type="Primary"
@@ -304,9 +305,10 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   image: {
-    width: "100%",
+    width: "120%",
     height: "auto",
     aspectRatio: 343 / 219,
+    marginLeft: "-5%",
   },
   header: {
     textAlign: "left",

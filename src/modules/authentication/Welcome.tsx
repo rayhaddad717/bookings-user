@@ -52,8 +52,9 @@ const styles = StyleSheet.create({
   },
   subtitle: { fontSize: 20 },
   image: {
-    width: "100%",
+    width: "120%",
     resizeMode: "cover",
     maxHeight: "60%",
+    marginLeft: "-5%",
   },
 });
