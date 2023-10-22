@@ -118,11 +118,7 @@ const HomeStackScreen = ({ navigation }: Props) => {
           <Text style={[theme.text.header]}>Near You</Text>
           <FlatList
             horizontal={true}
-            data={restaurantStore.restaurants.concat(
-              restaurantStore.restaurants,
-              restaurantStore.restaurants,
-              restaurantStore.restaurants
-            )}
+            data={restaurantStore.restaurants}
             style={{ minWidth: "120%", marginRight: "-5%" }}
             contentContainerStyle={styles.restaurantScrollView}
             keyExtractor={(item) => item.uid}

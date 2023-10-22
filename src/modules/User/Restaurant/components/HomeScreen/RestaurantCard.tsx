@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Entypo } from "@expo/vector-icons";
@@ -11,17 +11,33 @@ import {
   Text,
   StyleSheet,
 } from "react-native";
-import { Restaurant } from "../../../../../interfaces";
+import { Restaurant, userConverter } from "../../../../../interfaces";
 import { COLORS, theme } from "../../../../../theme";
 import { AntDesign } from "@expo/vector-icons";
+import MyIconButton from "../../../../../components/MyIconButton";
+import { observer } from "mobx-react-lite";
+import { useStore } from "../../../../../stores";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { firebaseDB } from "../../../../../../firebase";
+import Toast from "react-native-toast-message";
+import { ICONS, IMAGES } from "../../../../../icons";
 function RestaurantCard({
   restaurant,
   goToRestaurantDetails,
+  horizontal,
 }: {
   restaurant: Restaurant;
   goToRestaurantDetails: (uid: string) => any;
+  horizontal?: boolean;
 }) {
+  const hasFavorite = !horizontal;
+  const showCuisineAndRating = horizontal;
+  const hasNavigateArrow = horizontal;
+  const { authenticationStore, restaurantStore } = useStore();
   const [scaleValue] = useState(new Animated.Value(1));
+  const [isFavorite, setIsFavorite] = useState(
+    restaurantStore.favoriteRestaurants.has(restaurant.uid)
+  );
   const handlePressIn = () => {
     Animated.timing(scaleValue, {
       toValue: 0.95,
@@ -43,10 +59,51 @@ function RestaurantCard({
     });
   };
 
+  const toggleFavorite = useCallback(
+    async (value: boolean) => {
+      try {
+        setIsFavorite(value);
+        const authenticatedUserRef = doc(
+          firebaseDB,
+          "users",
+          authenticationStore.userUID as string
+        ).withConverter(userConverter);
+        const favoriteRestaurants =
+          authenticationStore.currentUser?.favoriteRestaurants || new Set();
+        if (value) favoriteRestaurants?.add(restaurant.uid);
+        else favoriteRestaurants?.delete(restaurant.uid);
+        await updateDoc(authenticatedUserRef, {
+          favoriteRestaurants: Array.from(favoriteRestaurants),
+        });
+        authenticationStore.currentUser!.favoriteRestaurants =
+          favoriteRestaurants;
+        authenticationStore.setCurrentUser(authenticationStore.currentUser!);
+        restaurantStore.toggleFavorite(restaurant.uid);
+      } catch (error) {
+        console.error(error);
+        Toast.show({
+          type: "error",
+          text1: "Something went wrong",
+          text2: "Try again later",
+        });
+        setIsFavorite(!value);
+      }
+    },
+    [
+      setIsFavorite,
+      authenticationStore.currentUser,
+      authenticationStore,
+      restaurant,
+    ]
+  );
+
   return (
     <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
       <TouchableOpacity
-        style={styles.restaurantCard}
+        style={[
+          styles.restaurantCard,
+          horizontal && styles.restaurantCardHorizontal,
+        ]}
         key={restaurant.uid}
         onPress={() => goToRestaurantDetails(restaurant.uid)}
         onPressIn={handlePressIn}
@@ -60,66 +117,76 @@ function RestaurantCard({
                 (restaurant.images?.length && restaurant?.images[0]?.url) ||
                 "https://api.bklebanon.com/content/uploads/offers/384~Website-Offers-King-Towfir-540x225.jpg",
             }}
-            style={styles.restaurantMainImage}
+            style={[
+              styles.restaurantMainImage,
+              horizontal && styles.restaurantMainImageHorizontal,
+            ]}
           />
-          <View
-            style={{
-              position: "absolute",
-              top: "3%",
-              right: "3%",
-              borderRadius: 24,
-              backgroundColor: COLORS.WHITE,
-              padding: 7,
-            }}
-          >
-            <AntDesign
-              onPress={() => console.log()}
-              name="heart"
-              size={20}
-              color="red"
-            />
-          </View>
+          {hasFavorite ? (
+            <View
+              style={{
+                position: "absolute",
+                top: "3%",
+                right: "3%",
+                borderRadius: 24,
+                backgroundColor: COLORS.WHITE,
+                padding: 7,
+              }}
+            >
+              <MyIconButton
+                icon={
+                  <AntDesign
+                    onPress={() => toggleFavorite(!isFavorite)}
+                    name={isFavorite ? "heart" : "hearto"}
+                    size={20}
+                    color="red"
+                  />
+                }
+                onPress={function () {}}
+                containerStyle={{}}
+              />
+            </View>
+          ) : null}
         </View>
         <View style={styles.bottom}>
-          <View>
+          <View style={{ gap: 7 }}>
             <Text style={styles.restaurantCardHeader}>{restaurant.name}</Text>
-            <Text style={theme.text.subtitle} numberOfLines={2}>
-              50 meters away
-            </Text>
+            {showCuisineAndRating ? (
+              <>
+                <Text
+                  style={[theme.text.subtitle, styles.subtitleSmaller]}
+                  numberOfLines={2}
+                >
+                  {restaurant.cuisine}
+                </Text>
+                <Text
+                  style={[theme.text.subtitle, styles.subtitleSmaller]}
+                  numberOfLines={1}
+                >
+                  5-Star Rating
+                </Text>
+              </>
+            ) : (
+              <Text style={theme.text.subtitle} numberOfLines={2}>
+                50 meters away
+              </Text>
+            )}
             {true ? null : <View style={styles.separator}></View>}
           </View>
-          {true ? null : (
-            <View style={styles.restaurantCardDetails}>
-              {/* occupied tables */}
-              <View style={styles.restaurantCardDetailsItem}>
-                <Entypo
-                  name="info-with-circle"
-                  size={16}
-                  color={theme.primaryColor}
-                />
-                <Text>1/4</Text>
-              </View>
-              <View style={styles.restaurantCardDetailsItem}>
-                <MaterialIcons
-                  name="room"
-                  size={16}
-                  color={theme.primaryColor}
-                />
-                <Text>2</Text>
-              </View>
-              {/* working staff */}
-              <View style={styles.restaurantCardDetailsItem}>
-                <Ionicons name="person" size={16} color={theme.primaryColor} />
-                <Text>3/10</Text>
-              </View>
-            </View>
-          )}
         </View>
+        {hasNavigateArrow ? (
+          <View style={{ justifyContent: "flex-end" }}>
+            <Image
+              style={styles.chevronRight}
+              source={ICONS.ICON_CHEVRON_RIGHT_CIRCLE}
+            />
+          </View>
+        ) : null}
       </TouchableOpacity>
     </Animated.View>
   );
 }
-export default React.memo(RestaurantCard);
+export default React.memo(observer(RestaurantCard));
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -135,14 +202,20 @@ const styles = StyleSheet.create({
   },
   restaurantCard: {
     gap: 10,
-    borderWidth: 2,
-    borderColor: "#f7f7f7",
+    borderWidth: 0,
+    ...theme.shadow.soft,
     padding: 8,
-    borderRadius: 10,
+    backgroundColor: COLORS.WHITE,
+    borderRadius: theme.borderRadius.soft,
     width: 280,
     marginBottom: 15,
     flexDirection: "column",
     // justifyContent: "space-between",
+  },
+  restaurantCardHorizontal: {
+    flexDirection: "row",
+    width: "100%",
+    gap: 30,
   },
   restaurantMainImage: {
     width: "100%",
@@ -150,6 +223,11 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
     borderRadius: theme.borderRadius.soft,
     // minHeight: 100,
+  },
+  restaurantMainImageHorizontal: {
+    aspectRatio: 1,
+    width: 90,
+    flexGrow: 1,
   },
   bottom: { gap: 10, flexGrow: 1 },
   restaurantCardHeader: { fontSize: 18, fontWeight: "600" },
@@ -173,4 +251,8 @@ const styles = StyleSheet.create({
     gap: 7,
     flexGrow: 1,
   },
+  subtitleSmaller: {
+    fontSize: 13,
+  },
+  chevronRight: { width: 22, height: 22 },
 });

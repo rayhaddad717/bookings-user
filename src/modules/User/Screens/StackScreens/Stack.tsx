@@ -6,6 +6,7 @@ import { observer } from "mobx-react-lite";
 import ReservationsListStackScreen from "./Dashboard/ReservationsListStackScreen";
 
 import ReservationListHeader from "./components/ReservationsList/ReservationListHeader";
+import SearchStackScreen from "./SearchStackScreen";
 const Stack = createNativeStackNavigator<UserStackParamsList>();
 const Stacks = () => {
   return (
@@ -14,6 +15,11 @@ const Stacks = () => {
         name="Tabs"
         component={Tabs}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Search"
+        component={SearchStackScreen}
+        options={{ headerShown: true, animation: "fade_from_bottom" }}
       />
       <Stack.Screen
         name="ReservationListStack"

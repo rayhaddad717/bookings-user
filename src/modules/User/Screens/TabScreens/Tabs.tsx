@@ -41,30 +41,6 @@ const Tabs = () => {
           tabBarIcon: ({ focused }) => {
             return (
               <Ionicons
-                name="search"
-                size={focused ? 28 : 25}
-                color={
-                  focused
-                    ? theme.tabBar.iconColorActive
-                    : theme.tabBar.iconColor
-                }
-              />
-            );
-          },
-          tabBarShowLabel: false,
-
-          tabBarStyle: {
-            height: theme.tabBar.height,
-          },
-        }}
-        name="Search"
-        component={NotificationsTabScreen}
-      />
-      <Tab.Screen
-        options={{
-          tabBarIcon: ({ focused }) => {
-            return (
-              <Ionicons
                 name="notifications"
                 size={focused ? 28 : 25}
                 color={

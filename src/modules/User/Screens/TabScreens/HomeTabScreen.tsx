@@ -8,7 +8,6 @@ import HomeStackScreen from "../../Restaurant/HomeStackScreen";
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
 const HomeTabScreen = () => {
-  console.log("tab screen");
   const { restaurantStore } = useStore();
   return (
     <Stack.Navigator initialRouteName="HomeStack">

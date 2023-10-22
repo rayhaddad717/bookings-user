@@ -56,7 +56,7 @@ function Login({ navigation }: Props) {
   const comingSoon = useCallback(() => {
     Toast.show({
       type: "success",
-      text1: "Comming Soon",
+      text1: "Coming Soon",
     });
   }, []);
   const handleSubmit =

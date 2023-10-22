@@ -10,6 +10,7 @@ export const ICONS = {
   ICON_KEBAB: require("../../assets/icons/icon_kebab.png"),
   ICON_HAMBURGER: require("../../assets/icons/icon_hamburger.png"),
   ICON_LEAF: require("../../assets/icons/icon_leaf.png"),
+  ICON_CHEVRON_RIGHT_CIRCLE: require("../../assets/icons/icon_chevron_circle_right.png"),
 };
 export const IMAGES = {
   SIGN_UP: require("../../assets/images/signup.png"),

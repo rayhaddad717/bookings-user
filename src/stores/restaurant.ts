@@ -3,8 +3,11 @@ import { Restaurant } from "../interfaces";
 
 export default class RestaurantStore {
   restaurantsMap = new Map<string, Restaurant>();
+  favoriteRestaurants = new Set<string>();
   isAddRestaurant = false;
   isLoaded = false;
+  cacheTimestamp: Date | null = null;
+  restaurantsForFilter: Restaurant[] = [];
   constructor() {
     makeAutoObservable(this);
   }
@@ -30,5 +33,18 @@ export default class RestaurantStore {
 
   setAddEditRestaurant = (type: "add" | "edit") => {
     this.isAddRestaurant = type === "add";
+  };
+
+  //user
+  toggleFavorite = (uid: string) => {
+    if (this.favoriteRestaurants.has(uid)) this.favoriteRestaurants.delete(uid);
+    else this.favoriteRestaurants.add(uid);
+  };
+  setFavoriateRestaurant = (favoriteRestaurants: Set<string>) => {
+    this.favoriteRestaurants = new Set(favoriteRestaurants);
+  };
+  setRestaurantsForFilter = (restaurantsForFilter: Restaurant[]) => {
+    this.cacheTimestamp = new Date();
+    this.restaurantsForFilter = restaurantsForFilter;
   };
 }

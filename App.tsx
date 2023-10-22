@@ -3,11 +3,11 @@ import { View, Text } from "react-native";
 import Login from "./src/modules/authentication/Login";
 import Register from "./src/modules/authentication/Register";
 import React, { useCallback, useEffect, useState } from "react";
-import { firebaseAuth } from "./firebase";
+import { firebaseAuth, firebaseDB } from "./firebase";
 import { observer } from "mobx-react-lite";
 import { StoreContext, store, useStore } from "./src/stores";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, useFocusEffect } from "@react-navigation/native";
 import { RootStackParamList } from "./src/utils/RouteParamList";
 import User from "./src/modules/User/User";
 import { onAuthStateChanged } from "firebase/auth";
@@ -25,11 +25,14 @@ import {
   Roboto_700Bold,
 } from "@expo-google-fonts/roboto";
 import Welcome from "./src/modules/authentication/Welcome";
+import { doc, getDoc } from "firebase/firestore";
+import { userRef } from "./src/collections";
+import { userConverter } from "./src/interfaces";
 SplashScreen.preventAutoHideAsync();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const App = observer(function App() {
   const [ready, setReady] = useState(false);
-  const { authenticationStore } = useStore();
+  const { authenticationStore, restaurantStore } = useStore();
   const [fontsLoaded, fontError] = useFonts({
     Roboto_100Thin,
     Roboto_300Light,
@@ -48,18 +51,47 @@ const App = observer(function App() {
   //   return null;
   // }
 
+  const setUser = useCallback(
+    async (userUID: string) => {
+      try {
+        const authenticatedUserRef = doc(
+          firebaseDB,
+          "users",
+          userUID
+        ).withConverter(userConverter);
+        const authenticatedUser = await getDoc(authenticatedUserRef);
+        if (authenticatedUser.exists()) {
+          authenticationStore.setCurrentUser(authenticatedUser.data());
+          restaurantStore.setFavoriateRestaurant(
+            authenticationStore.currentUser?.favoriteRestaurants || new Set()
+          );
+          console.log("setting current user");
+          setReady(true);
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "An Error has Occurred",
+            text2: "Please log in again",
+          });
+          authenticationStore.setUserUID(null);
+          authenticationStore.setCurrentUser(null);
+          setReady(false);
+        }
+      } catch (error) {}
+    },
+    [restaurantStore, authenticationStore]
+  );
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
       try {
         console.log("on auth state change", user);
         if (user) {
           authenticationStore.setUserUID(user.uid);
+          setUser(user.uid);
         } else {
           authenticationStore.setUserUID(null);
         }
         SplashScreen.hideAsync();
-
-        setReady(true);
       } catch (error) {
         console.error(error);
       }
@@ -68,7 +100,13 @@ const App = observer(function App() {
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [restaurantStore, authenticationStore]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (authenticationStore.userUID) setUser(authenticationStore.userUID);
+    }, [authenticationStore, setUser])
+  );
   // console.table({ fontsLoaded, fontError /});
   return (
     <StoreContext.Provider value={store}>

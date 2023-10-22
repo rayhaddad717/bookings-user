@@ -150,29 +150,26 @@ const RestaurantDetailsStackScreen = ({ navigation, route }: Props) => {
   const getOpeningHours = useMemo(() => {
     try {
       let result = "Closed Today";
-      console.log(restaurant?.daysOfTheWeekOperatingHours);
       const today = new Intl.DateTimeFormat("en-US", { weekday: "long" })
         .format(new Date())
         .toLowerCase() as DaysOfTheWeek;
       const todaysTimes = restaurant?.daysOfTheWeekOperatingHours?.[
         "monday"
       ] as any;
-      console.log(todaysTimes);
       if (todaysTimes && todaysTimes.startTime && todaysTimes.endTime) {
         result = `${new Date(
-          (todaysTimes.startTime as { seconds: number })["seconds"]!
+          (todaysTimes.startTime as { seconds: number })["seconds"]! * 1000
         )?.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
         })} - ${new Date(
-          (todaysTimes.endTime as { seconds: number })["seconds"]
+          (todaysTimes.endTime as { seconds: number })["seconds"] * 1000
         )?.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
         })}`;
       }
       return result;
-      console.log(result);
     } catch (error) {
       console.error(error);
     }
