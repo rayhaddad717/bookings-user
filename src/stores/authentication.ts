@@ -10,6 +10,7 @@ export default class AuthenticationStore {
 
   setCurrentUser = (user: User | null) => {
     runInAction(() => {
+      console.log('setting user in store',user)
       this.currentUser = user;
     });
   };

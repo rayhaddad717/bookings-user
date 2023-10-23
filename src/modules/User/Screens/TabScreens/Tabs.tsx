@@ -40,6 +40,30 @@ const Tabs = () => {
         options={{
           tabBarIcon: ({ focused }) => {
             return (
+              <AntDesign
+                name="calendar"
+                size={focused ? 28 : 25}
+                color={
+                  focused
+                    ? theme.tabBar.iconColorActive
+                    : theme.tabBar.iconColor
+                }
+              />
+            );
+          },
+          tabBarStyle: {
+            height: theme.tabBar.height,
+          },
+          tabBarShowLabel: false,
+          headerShown: false,
+        }}
+        name="Favorites"
+        component={HomeTabScreen}
+      />
+      <Tab.Screen
+        options={{
+          tabBarIcon: ({ focused }) => {
+            return (
               <Ionicons
                 name="notifications"
                 size={focused ? 28 : 25}
@@ -61,30 +85,6 @@ const Tabs = () => {
         component={NotificationsTabScreen}
       />
 
-      <Tab.Screen
-        options={{
-          tabBarIcon: ({ focused }) => {
-            return (
-              <FontAwesome
-                name="bookmark"
-                size={focused ? 28 : 25}
-                color={
-                  focused
-                    ? theme.tabBar.iconColorActive
-                    : theme.tabBar.iconColor
-                }
-              />
-            );
-          },
-          tabBarStyle: {
-            height: theme.tabBar.height,
-          },
-          tabBarShowLabel: false,
-          headerShown: false,
-        }}
-        name="Favorites"
-        component={HomeTabScreen}
-      />
       <Tab.Screen
         options={{
           tabBarIcon: ({ focused }) => {

@@ -19,7 +19,7 @@ const User = ({ navigation }: Props) => {
 
     const docRef = doc(
       firebaseDB,
-      "companies",
+      "users",
       authenticationStore.userUID!
     ).withConverter(userConverter);
     getDoc(docRef).then((docSnap) => {

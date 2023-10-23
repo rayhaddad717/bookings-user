@@ -58,7 +58,7 @@ function RestaurantCard({
       // Trigger the onPress function after the animation is complete
     });
   };
-
+  
   const toggleFavorite = useCallback(
     async (value: boolean) => {
       try {
